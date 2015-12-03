@@ -157,6 +157,8 @@ agent:add(classifier)
 --agent:add(nn.Linear(opt.hiddenSize, #ds:classes()))
 agent:add(nn.LogSoftMax())
 
+-- ChangeReward
+attention.rewardCriterion = nn.ChangeReward()
 
 -- add the baseline reward predictor
 seq = nn.Sequential()

@@ -66,8 +66,9 @@ function RecurrentAttention:updateOutput(input)
       self.output[step] = self.forwardActions and {output, self.actions[step]} or output
 
       --[[ new code ]]--
-
---      self.action:backward(nil, change)
+      local classifierOutput = self.classifier:updateOutput(self.output)
+      self.rewardCriterion:updateOutput(classifierOutput)
+      self.rewardCriterion:updateGradInput()
    end
    
    return self.output
