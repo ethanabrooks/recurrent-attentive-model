@@ -46,7 +46,6 @@ end
 
 function RecurrentAttention:updateOutput(input)
    self.rnn:forget()
-   dbg()
    self.action:forget()
    local nDim = input:dim()
    
@@ -62,13 +61,13 @@ function RecurrentAttention:updateOutput(input)
          self.actions[step] = self.action:updateOutput(self.output[step-1])
       end
 
-      print("test")
-      print("test")
-      print("test")
-      print("test")
       -- rnn handles the recurrence internally
       local output = self.rnn:updateOutput{input, self.actions[step] }
       self.output[step] = self.forwardActions and {output, self.actions[step]} or output
+
+      --[[ new code ]]--
+
+--      self.action:backward(nil, change)
    end
    
    return self.output
