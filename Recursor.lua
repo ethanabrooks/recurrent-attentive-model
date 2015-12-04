@@ -5,6 +5,7 @@
 -- AbstractRecurrent interface (which is inherited by LSTM/Recurrent) 
 ------------------------------------------------------------------------
 local Recursor, parent = torch.class('nn.Recursor', 'nn.AbstractRecurrent')
+local dbg = require("debugger")
 
 function Recursor:__init(module, rho)
    parent.__init(self, rho or 9999999)

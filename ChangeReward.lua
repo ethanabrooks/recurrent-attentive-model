@@ -49,7 +49,7 @@ function ChangeReward:updateOutput(input, target)
    local diff = self.classifierOutput and self.classifierOutput:add(-1, input)
            or input:clone():zero()
    self.classifierOutput = input
-   self.reward = torch.norm(diff, 2, 2)
+   self.reward = torch.norm(diff, 2, 2):squeeze()
 end
 
 function ChangeReward:updateGradInput(input, target)
