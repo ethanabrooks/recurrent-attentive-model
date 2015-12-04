@@ -47,11 +47,14 @@ function ChangeReward:updateOutput(input, target)
 --   end
 --   return self.
    -- dbg()
-   
+
    self.classifierOutput = self.classifierOutput or input:clone()
-   -- dbg()
    local diff = self.classifierOutput - input
    self.reward = torch.norm(diff, 2, 2):squeeze()
+   
+   -- std = torch.std(self.classifierOutput)
+   -- self.reward = torch.Tensor(20)
+   -- self.reward:fill(std)
 end
 
 function ChangeReward:updateGradInput(input, target)
