@@ -6,8 +6,6 @@ require 'rnn'
 -- B. http://incompleteideas.net/sutton/williams-92.pdf
 
 version = 12
---local _ = require("AbstractRecurrent")
---local _ = require("RecurrentAttention")
 local dbg = require("debugger")
 
 print("print statement")
