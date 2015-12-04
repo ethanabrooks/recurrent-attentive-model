@@ -34,7 +34,7 @@ cmd:option('--maxTries', 100, 'maximum number of epochs to try to find a better 
 cmd:option('--transfer', 'ReLU', 'activation function')
 cmd:option('--uniform', 0.1, 'initialize parameters using uniform distribution between -uniform and uniform. -1 means default initialization')
 cmd:option('--xpPath', '', 'path to a previously saved model')
-cmd:option('--progress', false, 'print progress bar')
+cmd:option('--progress', true, 'print progress bar')
 cmd:option('--silent', false, 'dont print anything to stdout')
 
 --[[ reinforce ]]--
