@@ -262,5 +262,6 @@ if not opt.silent then
 end
 
 xp.opt = opt
+print("new version")
 
 xp:run(ds)

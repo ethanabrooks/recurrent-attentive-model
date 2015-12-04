@@ -45,15 +45,19 @@ function ChangeReward:updateOutput(input, target)
 --   if self.sizeAverage then
 --      self.output = self.output/input:size(1)
 --   end
---   return self.output
-   local diff = self.classifierOutput and self.classifierOutput:add(-1, input)
-           or input:clone():zero()
-   self.classifierOutput = input
-   self.reward = torch.norm(diff, 2, 2)
+--   return self.
    -- dbg()
+
+   self.classifierOutput = self.classifierOutput or input:clone()
+   local diff = self.classifierOutput - input
+   self.reward = torch.norm(diff, 2, 2):squeeze()
+   
+   -- std = torch.std(self.classifierOutput)
+   -- self.reward = torch.Tensor(20)
+   -- self.reward:fill(std)
 end
 
-function ChangeReward:updateGradInput(input, output)
+function ChangeReward:updateGradInput(input, target)
 --
 
 --   local input = self:toBatch(inputTable[1], 1)
