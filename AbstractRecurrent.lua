@@ -58,7 +58,7 @@ function AbstractRecurrent:updateGradInput(input, gradOutput)
       -- BPTT for one time-step (rho = 1)
       self.gradInput = self:updateGradInputThroughTime(self.updateGradInputStep, 1)
       self.updateGradInputStep = self.updateGradInputStep - 1
---      assert(self.gradInput, "Missing gradInput")
+      assert(self.gradInput, "Missing gradInput")
       return self.gradInput
    else
       -- Back-Propagate Through Time (BPTT) happens in updateParameters()

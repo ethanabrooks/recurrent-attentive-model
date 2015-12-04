@@ -45,10 +45,12 @@ function ChangeReward:updateOutput(input, target)
 --   if self.sizeAverage then
 --      self.output = self.output/input:size(1)
 --   end
---   return self.output
-   local diff = self.classifierOutput and self.classifierOutput:add(-1, input)
-           or input:clone():zero()
-   self.classifierOutput = input
+--   return self.
+   -- dbg()
+   
+   self.classifierOutput = self.classifierOutput or input:clone()
+   -- dbg()
+   local diff = self.classifierOutput - input
    self.reward = torch.norm(diff, 2, 2):squeeze()
 end
 

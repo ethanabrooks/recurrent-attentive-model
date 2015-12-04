@@ -114,7 +114,6 @@ function RecurrentAttention:updateGradInput(input, gradOutput)
 
       if step == 1 then
          -- backward through initial starting actions
-         dbg()
          self.action:updateGradInput(self._initInput, gradAction_)
       else
          local gradAction = self.action:updateGradInput(self.output[step-1], gradAction_)
