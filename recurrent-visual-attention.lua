@@ -1,5 +1,7 @@
 require 'dp'
 require 'rnn'
+package.path = '/Users/Luke/torch/install/share/lua/5.1/rnn/?.lua;' .. package.path
+require ('ChangeReward')
 
 -- References :
 -- A. http://papers.nips.cc/paper/5542-recurrent-models-of-visual-attention.pdf
@@ -157,9 +159,6 @@ agent:add(classifier)
 --agent:add(nn.Linear(opt.hiddenSize, #ds:classes()))
 agent:add(nn.LogSoftMax())
 
--- ChangeReward
-attention.rewardCriterion = nn.ChangeReward()
-
 -- add the baseline reward predictor
 seq = nn.Sequential()
 seq:add(nn.Constant(1,1))
@@ -169,6 +168,9 @@ concat2 = nn.ConcatTable():add(nn.Identity()):add(concat)
 
 -- output will be : {classpred, {classpred, basereward}}
 agent:add(concat2)
+
+rewardCriterion = nn.ChangeReward(agent,1)
+attention.rewardCriterion = rewardCriterion
 
 if opt.uniform > 0 then
    for k,param in ipairs(agent:parameters()) do
