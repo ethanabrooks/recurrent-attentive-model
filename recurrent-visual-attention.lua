@@ -148,13 +148,14 @@ agent:add(nn.Convert(ds:ioShapes(), 'bchw'))
 agent:add(attention)
 
 -- classifier :
-classifier = nn.Sequential()
-classifier:add(nn.SelectTable(-1))
-classifier:add(nn.Linear(opt.hiddenSize, #ds:classes()))
-attention.classifier = classifier
-agent:add(classifier)
---agent:add(nn.SelectTable(-1))
---agent:add(nn.Linear(opt.hiddenSize, #ds:classes()))
+--classifier = nn.Sequential()
+--classifier:add(nn.SelectTable(-1))
+--classifier:add(nn.Linear(opt.hiddenSize, #ds:classes()))
+--attention.classifier = classifier
+--agent:add(classifier)
+
+agent:add(nn.SelectTable(-1))
+agent:add(nn.Linear(opt.hiddenSize, #ds:classes()))
 agent:add(nn.LogSoftMax())
 
 -- add the baseline reward predictor
@@ -257,5 +258,6 @@ if not opt.silent then
 end
 
 xp.opt = opt
+print("old version")
 
 xp:run(ds)
