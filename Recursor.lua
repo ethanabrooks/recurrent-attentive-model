@@ -71,6 +71,7 @@ function Recursor:updateGradInputThroughTime(timeStep, rho)
    self.gradInputs = {}
    timeStep = timeStep or self.step
    local rho = math.min(rho or self.rho, timeStep-1)
+   dbg()
    local stop = timeStep - rho
    local gradInput
    for step=timeStep-1,math.max(stop,1),-1 do
@@ -79,7 +80,9 @@ function Recursor:updateGradInputThroughTime(timeStep, rho)
       gradInput = recurrentModule:updateGradInput(self.inputs[step], self.gradOutputs[step])
       table.insert(self.gradInputs, 1, gradInput)
    end
-   
+--   print(gradInput)
+--   print(timeStep)
+--   dbg()
    return gradInput
 end
 
