@@ -46,15 +46,14 @@ function ChangeReward:updateOutput(input, target)
 --      self.output = self.output/input:size(1)
 --   end
 --   return self.output
-   -- dbg()
    local diff = self.classifierOutput and self.classifierOutput:add(-1, input)
            or input:clone():zero()
    self.classifierOutput = input
    self.reward = torch.norm(diff, 2, 2)
-   dbg()
+   -- dbg()
 end
 
-function ChangeReward:updateGradInput(input, target)
+function ChangeReward:updateGradInput(input, output)
 --
 
 --   local input = self:toBatch(inputTable[1], 1)

@@ -66,9 +66,12 @@ function RecurrentAttention:updateOutput(input)
       self.output[step] = self.forwardActions and {output, self.actions[step]} or output
 
       --[[ new code ]]--
-      local classifierOutput = self.classifier:updateOutput(self.output)
-      self.rewardCriterion:updateOutput(classifierOutput)
-      self.rewardCriterion:updateGradInput(input, self.output)
+      local classifierOutput = self.classifier:updateOutput(self.output) -- get the classification probabilities
+      self.rewardCriterion:updateOutput(classifierOutput)                -- calculate the reward by getting the norm
+      self.rewardCriterion:updateGradInput(input, self.output)           -- call the model's reinforce function to set the reward to the norm
+
+      -- This is where we need to call backprop to update parameters
+      -- self.action:backward(input, self., 1)
    end
    
    return self.output
