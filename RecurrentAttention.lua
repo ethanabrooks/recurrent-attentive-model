@@ -48,9 +48,9 @@ function RecurrentAttention:updateOutput(input)
    self.rnn:forget()
    self.action:forget()
    local nDim = input:dim()
-   
+
+   print("new glimpse")
    for step=1,self.nStep do
-      
       if step == 1 then
          -- sample an initial starting actions by forwarding zeros through the action
          self._initInput = self._initInput or input.new()
@@ -76,7 +76,7 @@ function RecurrentAttention:updateOutput(input)
 --      self.inputs[step] = input
 --      self.gradOutputs[step] = self.output
 --      self.action:updateGradInputThroughTime(step+1, 1) --TODO: this input has to be the same input as the one originally fed to action (and I think it is)
-      local currentModule = self.action:getStepModule(step)
+      local currentModule = self.action:getStepModule(step) --TODO: check that step isn't messing things up.
       currentModule:backward(input, self.output[step])
 --      self.action:updateGradInput(self.inputs, self.output)
       --TODO: also I don't know what self.output is doing here and this is probably a bad value. However, I think it can be a dummy value.
