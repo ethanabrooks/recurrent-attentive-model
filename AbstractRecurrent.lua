@@ -48,7 +48,6 @@ function AbstractRecurrent:updateGradInput(input, gradOutput)
    if self.onlineBackward then
       -- updateGradInput will be called in reverse order of time
       self.updateGradInputStep = self.updateGradInputStep or self.step
-      dbg()
       if self.copyGradOutputs then
          self.gradOutputs[self.updateGradInputStep-1] = nn.rnn.recursiveCopy(self.gradOutputs[self.updateGradInputStep-1] , gradOutput)
       else
@@ -57,8 +56,11 @@ function AbstractRecurrent:updateGradInput(input, gradOutput)
       end
       
       -- BPTT for one time-step (rho = 1)
+      dbg()
       self.gradInput = self:updateGradInputThroughTime(self.updateGradInputStep, 1)
-      
+      print(self.gradInput)
+      dbg()
+
       self.updateGradInputStep = self.updateGradInputStep - 1
       assert(self.gradInput, "Missing gradInput")
       return self.gradInput
