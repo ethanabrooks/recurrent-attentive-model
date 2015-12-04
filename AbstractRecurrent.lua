@@ -56,10 +56,9 @@ function AbstractRecurrent:updateGradInput(input, gradOutput)
       end
       
       -- BPTT for one time-step (rho = 1)
-      dbg()
+      -- dbg()
       self.gradInput = self:updateGradInputThroughTime(self.updateGradInputStep, 1)
-      print(self.gradInput)
-      dbg()
+      -- dbg()
 
       self.updateGradInputStep = self.updateGradInputStep - 1
       assert(self.gradInput, "Missing gradInput")

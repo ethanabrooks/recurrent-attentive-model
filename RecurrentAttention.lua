@@ -66,7 +66,7 @@ function RecurrentAttention:updateOutput(input)
       self.output[step] = self.forwardActions and {output, self.actions[step]} or output
 
       --[[ new code ]]--
-
+      dbg()
 --      self.action:backward(nil, change)
    end
    
