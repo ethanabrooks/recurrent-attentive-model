@@ -69,8 +69,9 @@ function RecurrentAttention:updateOutput(input)
       local classifierOutput = self.classifier:forward(self.output)
       self.rewardCriterion:updateOutput(classifierOutput)
       self.rewardCriterion:updateGradInput(input, self.output)
-      self.action.copyGradOutputs = false
-      self.action:backward(input) --TODO: this input has to be the same input as the one originally fed to action
+      dbg()
+      self.action:backward(input, self.output[step]) --TODO: this input has to be the same input as the one originally fed to action (and I think it is)
+      --TODO: also I don't know what self.output is doing here and this is probably a bad value. However, I think it can be a dummy value.
    end
    
    return self.output
