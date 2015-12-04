@@ -49,7 +49,6 @@ function RecurrentAttention:updateOutput(input)
    self.action:forget()
    local nDim = input:dim()
 
-   print("new glimpse")
    for step=1,self.nStep do
       if step == 1 then
          -- sample an initial starting actions by forwarding zeros through the action
