@@ -46,9 +46,10 @@ function ChangeReward:updateOutput(input, target)
 --      self.output = self.output/input:size(1)
 --   end
 --   return self.output
-   local diff = self.output and self.output:add(-1, input)
+   -- dbg()
+   local diff = self.classifierOutput and self.classifierOutput:add(-1, input)
            or input:clone():zero()
-   self.output = input
+   self.classifierOutput = input
    self.reward = torch.norm(diff, 2, 2)
 end
 
