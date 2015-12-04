@@ -2,6 +2,7 @@ local _ = require 'moses'
 
 assert(not nn.AbstractRecurrent, "update nnx package : luarocks install nnx")
 local AbstractRecurrent, parent = torch.class('nn.AbstractRecurrent', 'nn.Container')
+local dbg = require("debugger")
 
 function AbstractRecurrent:__init(rho)
    parent.__init(self)
@@ -47,6 +48,7 @@ function AbstractRecurrent:updateGradInput(input, gradOutput)
    if self.onlineBackward then
       -- updateGradInput will be called in reverse order of time
       self.updateGradInputStep = self.updateGradInputStep or self.step
+      dbg()
       if self.copyGradOutputs then
          self.gradOutputs[self.updateGradInputStep-1] = nn.rnn.recursiveCopy(self.gradOutputs[self.updateGradInputStep-1] , gradOutput)
       else
