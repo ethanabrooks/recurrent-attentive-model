@@ -184,7 +184,7 @@ opt.decayFactor = (opt.minLR - opt.learningRate)/opt.saturateEpoch
 train = dp.Optimizer{
    loss = nn.ParallelCriterion(true)
       :add(nn.ModuleCriterion(nn.ClassNLLCriterion(), nil, nn.Convert())) -- BACKPROP
---      :add(nn.ModuleCriterion(nn.VRClassReward(agent, opt.rewardScale), nil, nn.Convert())) -- REINFORCE
+      :add(nn.ModuleCriterion(nn.VRClassReward(agent, opt.rewardScale), nil, nn.Convert())) -- REINFORCE
    ,
    epoch_callback = function(model, report) -- called every epoch
       if report.epoch > 0 then
