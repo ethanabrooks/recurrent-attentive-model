@@ -78,6 +78,7 @@ function RecurrentAttention:updateOutput(input)
 --      self.action:updateGradInputThroughTime(step+1, 1) --TODO: this input has to be the same input as the one originally fed to action (and I think it is)
       local currentModule = self.action:getStepModule(step)
       currentModule:backward(input, self.output[step])
+
 --      self.action:updateGradInput(self.inputs, self.output)
       --TODO: also I don't know what self.output is doing here and this is probably a bad value. However, I think it can be a dummy value.
    end
