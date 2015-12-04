@@ -69,8 +69,16 @@ function RecurrentAttention:updateOutput(input)
       local classifierOutput = self.classifier:forward(self.output)
       self.rewardCriterion:updateOutput(classifierOutput)
       self.rewardCriterion:updateGradInput(input, self.output)
-      dbg()
-      self.action:backward(input, self.output[step]) --TODO: this input has to be the same input as the one originally fed to action (and I think it is)
+--      self.action:backward(input, self.output[step]) --TODO: this input has to be the same input as the one originally fed to action (and I think it is)
+
+--      self.inputs = self.inputs or {}
+--      self.gradOutputs = self.gradOutputs or {}
+--      self.inputs[step] = input
+--      self.gradOutputs[step] = self.output
+--      self.action:updateGradInputThroughTime(step+1, 1) --TODO: this input has to be the same input as the one originally fed to action (and I think it is)
+      local currentModule = self.action:getStepModule(step)
+      currentModule:backward(input, self.output[step])
+--      self.action:updateGradInput(self.inputs, self.output)
       --TODO: also I don't know what self.output is doing here and this is probably a bad value. However, I think it can be a dummy value.
    end
    
@@ -106,6 +114,7 @@ function RecurrentAttention:updateGradInput(input, gradOutput)
 
       if step == 1 then
          -- backward through initial starting actions
+         dbg()
          self.action:updateGradInput(self._initInput, gradAction_)
       else
          local gradAction = self.action:updateGradInput(self.output[step-1], gradAction_)
