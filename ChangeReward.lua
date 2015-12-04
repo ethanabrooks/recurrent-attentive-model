@@ -7,7 +7,7 @@
 -- Note : for RNNs with R = 1 for last step in sequence, encapsulate it
 -- in nn.ModuleCriterion(VRClassReward, nn.SelectTable(-1))
 ------------------------------------------------------------------------
-local ChangeReward, parent = torch.class("nn.VRClassReward", "nn.Criterion")
+local ChangeReward, parent = torch.class("nn.ChangeReward", "nn.Criterion")
 local dbg = require("debugger")
 
 function ChangeReward:__init(module, scale, criterion)
