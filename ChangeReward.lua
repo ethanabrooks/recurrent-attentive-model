@@ -50,7 +50,6 @@ function ChangeReward:updateOutput(input, target)
            or input:clone():zero()
    self.classifierOutput = input
    self.reward = torch.norm(diff, 2, 2)
-   dbg()
 end
 
 function ChangeReward:updateGradInput(input, target)
