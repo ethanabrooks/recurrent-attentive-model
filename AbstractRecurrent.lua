@@ -45,6 +45,7 @@ function AbstractRecurrent:maskZero(nInputDim)
 end
 
 function AbstractRecurrent:updateGradInput(input, gradOutput)
+   dbg()
    if self.onlineBackward then
       -- updateGradInput will be called in reverse order of time
       self.updateGradInputStep = self.updateGradInputStep or self.step
