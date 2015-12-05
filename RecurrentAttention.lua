@@ -67,13 +67,14 @@ function RecurrentAttention:updateOutput(input)
       self.output[step] = self.forwardActions and {output, self.actions[step]} or output
 
       --[[ new code ]]--
-      local classifierOutput = self.classifier:forward(self.output) -- get the current classification of the rnn
-      --    ^^^^^^^^^^^^^^^^ this is NOT CHANGING for the first 5 glimpses
+      local classifierOutput = self.classifier.modules[2]:updateOutput(self.output[step]) -- get the current classification of the rnn
       self.rewardCriterion:updateOutput(classifierOutput) -- tell the criterion to calculate the reward for the locator
-      self.rewardCriterion:updateGradInput(input, self.output) -- tell the criterion to broadcast its reward to the locator
+      self.rewardCriterion:updateGradInput(nil, nil) -- tell the criterion to broadcast its reward to the locator
 
       local currentModule = self.action:getStepModule(step) -- get the SEQUENTIAL module, not the Recursor
-      currentModule:backward(self.output[step-1], torch.Tensor(output)) -- backpropagate and update weights
+      currentModule:backward(self.output[step], torch.Tensor(output)) -- backpropagate and update weights
+
+
       --[[end new code]]
 
 
@@ -86,6 +87,7 @@ function RecurrentAttention:updateOutput(input)
 --      self.action:updateGradInput(self.inputs, self.output)
       --TODO: also I don't know what self.output is doing here and this is probably a bad value. However, I think it can be a dummy value.
    end
+   print ('"\n')
    
    return self.output
 end
