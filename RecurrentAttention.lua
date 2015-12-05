@@ -54,11 +54,13 @@ function RecurrentAttention:updateOutput(input)
          -- sample an initial starting actions by forwarding zeros through the action
          self._initInput = self._initInput or input.new()
          self._initInput:resize(input:size(1),table.unpack(self.hiddenSize)):zero()
-         self.actions[1] = self.action:updateOutput(self._initInput)
-      else
+         self.output[0] = self._initInput
+--         self.actions[1] = self.action:updateOutput(self._initInput)
+--      else
          -- sample actions from previous hidden activation (rnn output)
-         self.actions[step] = self.action:updateOutput(self.output[step-1])
+--         self.actions[step] = self.action:updateOutput(self.output[step-1])
       end
+      self.actions[step] = self.action:updateOutput(self.output[step-1])
 
       -- rnn handles the recurrence internally
       local output = self.rnn:updateOutput{input, self.actions[step] }
@@ -76,7 +78,7 @@ function RecurrentAttention:updateOutput(input)
 --      self.gradOutputs[step] = self.output
 --      self.action:updateGradInputThroughTime(step+1, 1) --TODO: this input has to be the same input as the one originally fed to action (and I think it is)
       local currentModule = self.action:getStepModule(step) --TODO: check that step isn't messing things up.
-      currentModule:accGradParameters(input, self.output[step])
+      currentModule:backward(self.output[step-1], torch.Tensor(output))
 --      self.action:updateGradInput(self.inputs, self.output)
       --TODO: also I don't know what self.output is doing here and this is probably a bad value. However, I think it can be a dummy value.
    end
