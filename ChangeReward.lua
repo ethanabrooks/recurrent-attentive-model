@@ -17,9 +17,10 @@ function ChangeReward:__init(module, scale, criterion)
    self.criterion = criterion or nn.MSECriterion() -- baseline criterion
    self.sizeAverage = true
    self.gradInput = {torch.Tensor()}
+   self.std = 0
 end
 
-function ChangeReward:updateOutput(input, target)
+function ChangeReward:updateOutput(currentClassifierOutput, target)
 --   assert(torch.type(input) == 'table')
 --   local input = self:toBatch(input[1], 1)
 --   self._maxVal = self._maxVal or input.new()
@@ -46,15 +47,27 @@ function ChangeReward:updateOutput(input, target)
 --      self.output = self.output/input:size(1)
 --   end
 --   return self.
-   -- dbg()
 
-   self.classifierOutput = self.classifierOutput or input:clone()
-   local diff = self.classifierOutput - input
-   self.reward = torch.norm(diff, 2, 2):squeeze()
+   -- Norm implementation
+
+   self.classifierOutput = self.classifierOutput or currentClassifierOutput:clone()  -- set the classifier output to itself or, if not defined already, to the input so the 
+                                                                   -- norm will be zero for the first epoch
+   local diff = currentClassifierOutput - self.classifierOutput -- calculate the difference between the current and previous classifier outputs
+   self.reward = torch.norm(diff, 2, 2):squeeze() * .001 -- calculate the norm of the difference of the two outputs and scale it to be used as the new reward
+   local norm = self.reward:clone()
+   difference = norm - (self.norm or norm)
+   print (torch.mean(difference))
+   self.norm = norm
    
-   -- std = torch.std(self.classifierOutput)
+   -- Standard deviation implementation 
+
+   -- local std = torch.std(input)
+   -- print (std - self.std)
    -- self.reward = torch.Tensor(20)
    -- self.reward:fill(std)
+   -- self.reward = self.reward * .001
+   -- self.std = torch.abs(std)
+
 end
 
 function ChangeReward:updateGradInput(input, target)
@@ -70,8 +83,8 @@ function ChangeReward:updateGradInput(input, target)
 --   if self.sizeAverage then
 --      self.vrReward:div(input:size(1))
 --   end
-   -- broadcast reward to modules
-   self.module:reinforce(self.reward)
+
+   self.module:reinforce(self.reward) -- broadcast reward to modules
 --
 --   -- zero gradInput (this criterion has no gradInput for class pred)
 --   self.gradInput[1]:resizeAs(input):zero()

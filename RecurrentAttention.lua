@@ -63,12 +63,11 @@ function RecurrentAttention:updateOutput(input)
       self.actions[step] = self.action:updateOutput(self.output[step-1])
 
       -- rnn handles the recurrence internally
-
       local output = self.rnn:updateOutput{input, self.actions[step] }
       self.output[step] = self.forwardActions and {output, self.actions[step]} or output
 
       --[[ new code ]]--
-      local classifierOutput = self.classifier:forward(self.output)
+      local classifierOutput = self.classifier.modules[2]:forward(self.output[step-1])
       self.rewardCriterion:updateOutput(classifierOutput)
       self.rewardCriterion:updateGradInput(input, self.output)
 --      self.action:backward(input, self.output[step]) --TODO: this input has to be the same input as the one originally fed to action (and I think it is)
@@ -78,8 +77,6 @@ function RecurrentAttention:updateOutput(input)
 --      self.inputs[step] = input
 --      self.gradOutputs[step] = self.output
 --      self.action:updateGradInputThroughTime(step+1, 1) --TODO: this input has to be the same input as the one originally fed to action (and I think it is)
-      local currentModule = self.action:getStepModule(step) --TODO: check that step isn't messing things up.
-      currentModule:backward(self.output[step-1], torch.Tensor(1))
 --      self.action:updateGradInput(self.inputs, self.output)
       --TODO: also I don't know what self.output is doing here and this is probably a bad value. However, I think it can be a dummy value.
    end
