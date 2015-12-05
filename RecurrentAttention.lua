@@ -48,38 +48,41 @@ function RecurrentAttention:updateOutput(input)
    self.rnn:forget()
    self.action:forget()
    local nDim = input:dim()
-   
+
    for step=1,self.nStep do
-      
       if step == 1 then
          -- sample an initial starting actions by forwarding zeros through the action
          self._initInput = self._initInput or input.new()
          self._initInput:resize(input:size(1),table.unpack(self.hiddenSize)):zero()
-         self.actions[1] = self.action:updateOutput(self._initInput)
-      else
+         self.output[0] = self._initInput
+--         self.actions[1] = self.action:updateOutput(self._initInput)
+--      else
          -- sample actions from previous hidden activation (rnn output)
-         self.actions[step] = self.action:updateOutput(self.output[step-1])
+--         self.actions[step] = self.action:updateOutput(self.output[step-1])
       end
+      self.actions[step] = self.action:updateOutput(self.output[step-1])
 
       -- rnn handles the recurrence internally
       local output = self.rnn:updateOutput{input, self.actions[step] }
       self.output[step] = self.forwardActions and {output, self.actions[step]} or output
 
       --[[ new code ]]--
-      local classifierOutput = self.classifier:forward(self.output)
-      self.rewardCriterion:updateOutput(classifierOutput)
-      self.rewardCriterion:updateGradInput(input, self.output)
---      self.action:backward(input, self.output[step]) --TODO: this input has to be the same input as the one originally fed to action (and I think it is)
+      local classifierOutput = self.classifier:forward(self.output) -- get the current classification of the rnn
+      --    ^^^^^^^^^^^^^^^^ this is NOT CHANGING for the first 5 glimpses
+      self.rewardCriterion:updateOutput(classifierOutput) -- tell the criterion to calculate the reward for the locator
+      self.rewardCriterion:updateGradInput(input, self.output) -- tell the criterion to broadcast its reward to the locator
 
+      local currentModule = self.action:getStepModule(step) -- get the SEQUENTIAL module, not the Recursor
+      currentModule:backward(self.output[step-1], torch.Tensor(output)) -- backpropagate and update weights
+      --[[end new code]]
+
+
+      --      self.action:backward(input, self.output[step]) --TODO: this input has to be the same input as the one originally fed to action (and I think it is)
 --      self.inputs = self.inputs or {}
 --      self.gradOutputs = self.gradOutputs or {}
 --      self.inputs[step] = input
 --      self.gradOutputs[step] = self.output
 --      self.action:updateGradInputThroughTime(step+1, 1) --TODO: this input has to be the same input as the one originally fed to action (and I think it is)
-      local currentModule = self.action:getStepModule(step)
-      dbg()
-      currentModule:backward(self.output[step-1], input)
-
 --      self.action:updateGradInput(self.inputs, self.output)
       --TODO: also I don't know what self.output is doing here and this is probably a bad value. However, I think it can be a dummy value.
    end
