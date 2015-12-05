@@ -67,18 +67,22 @@ function RecurrentAttention:updateOutput(input)
       self.output[step] = self.forwardActions and {output, self.actions[step]} or output
 
       --[[ new code ]]--
-      local classifierOutput = self.classifier:forward(self.output)
-      self.rewardCriterion:updateOutput(classifierOutput)
-      self.rewardCriterion:updateGradInput(input, self.output)
---      self.action:backward(input, self.output[step]) --TODO: this input has to be the same input as the one originally fed to action (and I think it is)
+      local classifierOutput = self.classifier:forward(self.output) -- get the current classification of the rnn
+      --    ^^^^^^^^^^^^^^^^ this is NOT CHANGING for the first 5 glimpses
+      self.rewardCriterion:updateOutput(classifierOutput) -- tell the criterion to calculate the reward for the locator
+      self.rewardCriterion:updateGradInput(input, self.output) -- tell the criterion to broadcast its reward to the locator
 
+      local currentModule = self.action:getStepModule(step) -- get the SEQUENTIAL module, not the Recursor
+      currentModule:backward(self.output[step-1], torch.Tensor(output)) -- backpropagate and update weights
+      --[[end new code]]
+
+
+      --      self.action:backward(input, self.output[step]) --TODO: this input has to be the same input as the one originally fed to action (and I think it is)
 --      self.inputs = self.inputs or {}
 --      self.gradOutputs = self.gradOutputs or {}
 --      self.inputs[step] = input
 --      self.gradOutputs[step] = self.output
 --      self.action:updateGradInputThroughTime(step+1, 1) --TODO: this input has to be the same input as the one originally fed to action (and I think it is)
-      local currentModule = self.action:getStepModule(step) --TODO: check that step isn't messing things up.
-      currentModule:backward(self.output[step-1], torch.Tensor(output))
 --      self.action:updateGradInput(self.inputs, self.output)
       --TODO: also I don't know what self.output is doing here and this is probably a bad value. However, I think it can be a dummy value.
    end
