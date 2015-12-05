@@ -16,6 +16,8 @@
 ------------------------------------------------------------------------
 assert(not nn.Recurrent, "update nnx package : luarocks install nnx")
 local Recurrent, parent = torch.class('nn.Recurrent', 'nn.AbstractRecurrent')
+local dbg = require("debugger")
+
 
 function Recurrent:__init(start, input, feedback, transfer, rho, merge)
    parent.__init(self, rho or 5)

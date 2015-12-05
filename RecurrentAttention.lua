@@ -63,6 +63,7 @@ function RecurrentAttention:updateOutput(input)
       self.actions[step] = self.action:updateOutput(self.output[step-1])
 
       -- rnn handles the recurrence internally
+
       local output = self.rnn:updateOutput{input, self.actions[step] }
       self.output[step] = self.forwardActions and {output, self.actions[step]} or output
 
@@ -199,4 +200,39 @@ function RecurrentAttention:__tostring__()
    str = str .. line .. tab .. 'rnn     : ' .. tostring(self.rnn):gsub(line, line .. tab .. ext)
    str = str .. line .. '}'
    return str
+end
+
+
+function print_r ( t )
+local print_r_cache={}
+local function sub_print_r(t,indent)
+   if (print_r_cache[tostring(t)]) and type(t)~=torch.Tensor then
+      print(indent.."*"..tostring(t))
+   else
+      print_r_cache[tostring(t)]=true
+      if (type(t)=="table") then
+         for pos,val in pairs(t) do
+            if (type(val)=="table") and type(t)~=torch.Tensor then
+               print(indent.."["..pos.."] => "..tostring(t).." {")
+               sub_print_r(val,indent..string.rep(" ",string.len(pos)+8))
+               print(indent..string.rep(" ",string.len(pos)+6).."}")
+            elseif (type(val)=="string") then
+               print(indent.."["..pos..'] => "'..val..'"')
+            elseif type(val)~="userdata" then
+               print(indent.."["..pos.."] => "..tostring(val))
+            end
+         end
+      elseif type(t)~=torch.Tensor then
+         print(indent..tostring(t))
+      end
+   end
+end
+if (type(t)=="table") and type(t)~=torch.Tensor then
+   print(tostring(t).." {")
+   sub_print_r(t,"  ")
+   print("}")
+else
+   sub_print_r(t,"  ")
+end
+print()
 end
