@@ -50,7 +50,8 @@ function RecurrentAttention:updateOutput(input)
    local nDim = input:dim()
    
    for step=1,self.nStep do
-      
+
+      dbg()
       if step == 1 then
          -- sample an initial starting actions by forwarding zeros through the action
          self._initInput = self._initInput or input.new()
