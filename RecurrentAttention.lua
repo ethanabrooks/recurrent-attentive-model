@@ -68,7 +68,6 @@ function RecurrentAttention:updateOutput(input)
 
       --[[ new code ]]--
       local classifierOutput = self.classifier.modules[2]:updateOutput(self.output[step-1]) -- get the current classification of the rnn
-      --    ^^^^^^^^^^^^^^^^ this is NOT CHANGING for the first 5 glimpses
       -- dbg()
       self.rewardCriterion:updateOutput(classifierOutput) -- tell the criterion to calculate the reward for the locator
       self.rewardCriterion:updateGradInput(input, self.output) -- tell the criterion to broadcast its reward to the locator
