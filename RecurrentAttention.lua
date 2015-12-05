@@ -51,7 +51,7 @@ function RecurrentAttention:updateOutput(input)
    
    for step=1,self.nStep do
 
-      dbg()
+      -- dbg()
       if step == 1 then
          -- sample an initial starting actions by forwarding zeros through the action
          self._initInput = self._initInput or input.new()
@@ -67,7 +67,7 @@ function RecurrentAttention:updateOutput(input)
       self.output[step] = self.forwardActions and {output, self.actions[step]} or output
 
       --[[ new code ]]--
-      dbg()
+      -- dbg()
 --      self.action:backward(nil, change)
    end
    
