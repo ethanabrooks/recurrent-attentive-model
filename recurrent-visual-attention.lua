@@ -182,7 +182,8 @@ end
 opt.decayFactor = (opt.minLR - opt.learningRate)/opt.saturateEpoch
 
 train = dp.Optimizer{
-   loss = nn.ParallelCriterion(true)
+   loss =
+   nn.ParallelCriterion(true)
       :add(nn.ModuleCriterion(nn.ClassNLLCriterion(), nil, nn.Convert())) -- BACKPROP
       :add(nn.ModuleCriterion(nn.VRClassReward(agent, opt.rewardScale), nil, nn.Convert())) -- REINFORCE
    ,
