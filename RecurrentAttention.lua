@@ -48,34 +48,22 @@ function RecurrentAttention:updateOutput(input)
    self.rnn:forget()
    self.action:forget()
    local nDim = input:dim()
-
+   
    for step=1,self.nStep do
       if step == 1 then
          -- sample an initial starting actions by forwarding zeros through the action
          self._initInput = self._initInput or input.new()
          self._initInput:resize(input:size(1),table.unpack(self.hiddenSize)):zero()
-         self.output[0] = self._initInput
---         self.actions[1] = self.action:updateOutput(self._initInput)
---      else
+         self.actions[1] = self.action:updateOutput(self._initInput)
+      else
          -- sample actions from previous hidden activation (rnn output)
---         self.actions[step] = self.action:updateOutput(self.output[step-1])
+         self.actions[step] = self.action:updateOutput(self.output[step-1])
       end
-      self.actions[step] = self.action:updateOutput(self.output[step-1])
 
       -- rnn handles the recurrence internally
       local output = self.rnn:updateOutput{input, self.actions[step] }
       self.output[step] = self.forwardActions and {output, self.actions[step]} or output
-
-      --[[ new code ]]--
-      local classifierOutput = self.classifier.modules[2]:updateOutput(self.output[step]) -- get the current classification of the rnn
-      self.rewardCriterion:updateOutput(classifierOutput) -- tell the criterion to calculate the reward for the locator
-      -- self.rewardCriterion:updateGradInput(nil, nil) -- tell the criterion to broadcast its reward to the locator
-
-      -- local currentModule = self.action:getStepModule(step) -- get the SEQUENTIAL module, not the Recursor
-      -- currentModule:backward(self.output[step-1], torch.Tensor(output)) -- backpropagate and update weight
-      --[[end new code]]
    end
-   print ('\n')
    
    return self.output
 end
@@ -166,6 +154,34 @@ function RecurrentAttention:accUpdateGradParameters(input, gradOutput, lr)
          -- Note : gradOutput is ignored by REINFORCE modules so we give action.output as a dummy variable
          self.action:accUpdateGradParameters(self.output[step-1], gradAction_, lr)
       end
+      
+      -- 2. backward through the rnn layer
+      self.rnn:accUpdateGradParameters(input, self.gradHidden[step], lr)
+   end
+end
+
+function RecurrentAttention:type(type)
+   self._input = nil
+   self._actions = nil
+   self._crop = nil
+   self._pad = nil
+   self._byte = nil
+   return parent.type(self, type)
+end
+
+function RecurrentAttention:__tostring__()
+   local tab = '  '
+   local line = '\n'
+   local ext = '  |    '
+   local extlast = '       '
+   local last = '   ... -> '
+   local str = torch.type(self)
+   str = str .. ' {'
+   str = str .. line .. tab .. 'action : ' .. tostring(self.action):gsub(line, line .. tab .. ext)
+   str = str .. line .. tab .. 'rnn     : ' .. tostring(self.rnn):gsub(line, line .. tab .. ext)
+   str = str .. line .. '}'
+   return str
+end
       
       -- 2. backward through the rnn layer
       self.rnn:accUpdateGradParameters(input, self.gradHidden[step], lr)
