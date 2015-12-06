@@ -48,7 +48,7 @@ cmd:option('--locatorHiddenSize', 128, 'size of locator hidden layer')
 cmd:option('--imageHiddenSize', 256, 'size of hidden layer combining glimpse and locator hiddens')
 
 --[[ recurrent layer ]]--
-cmd:option('--rho', 7, 'back-propagate through time (BPTT) for rho time-steps')
+cmd:option('--rho', 8, 'back-propagate through time (BPTT) for rho time-steps')
 cmd:option('--hiddenSize', 256, 'number of hidden units used in Simple RNN.')
 cmd:option('--dropout', false, 'apply dropout on hidden neurons')
 
@@ -138,23 +138,18 @@ assert(locator:get(3).stochastic == opt.stochastic, "Please update the dpnn pack
 locator:add(nn.HardTanh()) -- bounds sample between -1 and 1
 locator:add(nn.MulConstant(opt.unitPixels*2/ds:imageSize("h")))
 
-attention = nn.RecurrentAttention(rnn, locator, opt.rho, {opt.hiddenSize})
-
+attention = nn.RecurrentAttention(rnn, locator, opt.rho, {opt.hiddenSize}, glimpseSensor)
 -- model is a reinforcement learning agent
 agent = nn.Sequential()
 agent:add(nn.Convert(ds:ioShapes(), 'bchw'))
 agent:add(attention)
 
--- classifier :
---classifier = nn.Sequential()
---classifier:add(nn.SelectTable(-1))
---classifier:add(nn.Linear(opt.hiddenSize, #ds:classes()))
---attention.classifier = classifier
---agent:add(classifier)
-
-agent:add(nn.SelectTable(-1))
-agent:add(nn.Linear(opt.hiddenSize, #ds:classes()))
-agent:add(nn.LogSoftMax())
+classifier = nn.Sequential()
+classifier:add(nn.SelectTable(-1))
+classifier:add(nn.Linear(opt.hiddenSize, #ds:classes()))
+classifier:add(nn.LogSoftMax())
+agent:add(classifier)
+attention.classifier = classifier
 
 -- add the baseline reward predictor
 seq = nn.Sequential()

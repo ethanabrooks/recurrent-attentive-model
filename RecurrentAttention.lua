@@ -9,13 +9,14 @@
 local RecurrentAttention, parent = torch.class("nn.RecurrentAttention", "nn.AbstractSequencer")
 local dbg = require("debugger")
 
-function RecurrentAttention:__init(rnn, action, nStep, hiddenSize)
+function RecurrentAttention:__init(rnn, action, nStep, hiddenSize, glimpseSensor)
    parent.__init(self)
    assert(torch.isTypeOf(action, 'nn.Module'))
    assert(torch.type(nStep) == 'number')
    assert(torch.type(hiddenSize) == 'table')
    assert(torch.type(hiddenSize[1]) == 'number', "Does not support table hidden layers" )
-
+   self.classifier = nil
+   self.glimpseSensor = glimpseSensor
    self.rnn = rnn
    -- we can decorate the module with a Recursor to make it AbstractRecurrent
    self.rnn = (not torch.isTypeOf(rnn, 'nn.AbstractRecurrent')) and nn.Recursor(rnn) or rnn
@@ -49,7 +50,10 @@ function RecurrentAttention:updateOutput(input)
    self.action:forget()
    local nDim = input:dim()
    
-   for step=1,self.nStep do
+   for step=1,self.nStep do  -- ADDED +1 FOR FIRST GLIMPSE CHECK
+
+      self.glimpseSensor.currentStep = step
+
       if step == 1 then
          -- sample an initial starting actions by forwarding zeros through the action
          self._initInput = self._initInput or input.new()
@@ -63,6 +67,13 @@ function RecurrentAttention:updateOutput(input)
       -- rnn handles the recurrence internally
       local output = self.rnn:updateOutput{input, self.actions[step] }
       self.output[step] = self.forwardActions and {output, self.actions[step]} or output
+
+      if step == 7 or step == 8 then
+         classifierOutput = self.classifier:updateOutput(self.output[step])
+         print (classifierOutput)
+      end
+
+
    end
    
    return self.output
