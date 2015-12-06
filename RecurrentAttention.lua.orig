@@ -65,6 +65,8 @@ function RecurrentAttention:updateOutput(input)
       -- rnn handles the recurrence internally
       local output = self.rnn:updateOutput{input, self.actions[step] }
       self.output[step] = self.forwardActions and {output, self.actions[step]} or output
+<<<<<<< HEAD
+=======
 
       --[[ new code ]]--
       local classifierOutput = self.classifier.modules[2]:updateOutput(self.output[step]) -- get the current classification of the rnn
@@ -74,6 +76,7 @@ function RecurrentAttention:updateOutput(input)
       local currentModule = self.action:getStepModule(step) -- get the SEQUENTIAL module, not the Recursor
       currentModule:backward(self.output[step-1], torch.Tensor(output)) -- backpropagate and update weight
       --[[end new code]]
+>>>>>>> twerkingBranch
    end
    print ('\n')
    

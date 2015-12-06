@@ -166,6 +166,9 @@ concat2 = nn.ConcatTable():add(nn.Identity()):add(concat)
 -- output will be : {classpred, {classpred, basereward}}
 agent:add(concat2)
 
+rewardCriterion = nn.ChangeReward(agent,1)
+attention.rewardCriterion = rewardCriterion
+
 if opt.uniform > 0 then
    for k,param in ipairs(agent:parameters()) do
       param:uniform(-opt.uniform, opt.uniform)
@@ -256,6 +259,6 @@ if not opt.silent then
 end
 
 xp.opt = opt
-print("old version")
+print("new version")
 
 xp:run(ds)
