@@ -16,6 +16,7 @@
 ------------------------------------------------------------------------
 assert(not nn.Recurrent, "update nnx package : luarocks install nnx")
 local Recurrent, parent = torch.class('nn.Recurrent', 'nn.AbstractRecurrent')
+local dbg = require("debugger")
 
 function Recurrent:__init(start, input, feedback, transfer, rho, merge)
    parent.__init(self, rho or 5)
@@ -61,21 +62,21 @@ function Recurrent:buildRecurrentModule()
    self.recurrentModule:add(self.transferModule)
 end
 
-function Recurrent:updateOutput(input)
+function Recurrent:updateOutput(input, trialNum)
    -- output(t) = transfer(feedback(output_(t-1)) + input(input_(t)))
    local output
    if self.step == 1 then
-      output = self.initialModule:updateOutput(input)
+      output = self.initialModule:updateOutput(input, trialNum)
    else
       if self.train ~= false then
          -- set/save the output states
          self:recycle()
          local recurrentModule = self:getStepModule(self.step)
           -- self.output is the previous output of this module
-         output = recurrentModule:updateOutput{input, self.output}
+         output = recurrentModule:updateOutput({input, self.output}, trialNum)
       else
          -- self.output is the previous output of this module
-         output = self.recurrentModule:updateOutput{input, self.output}
+         output = self.recurrentModule:updateOutput({input, self.output}, trialNum)
       end
    end
    

@@ -18,14 +18,14 @@ function Recursor:__init(module, rho)
    self.modules = {module}
 end
 
-function Recursor:updateOutput(input)
+function Recursor:updateOutput(input, trialNum)
    if self.train ~= false then
       -- set/save the output states
       self:recycle()
       local recurrentModule = self:getStepModule(self.step)
-      output = recurrentModule:updateOutput(input)
+      output = recurrentModule:updateOutput(input, trialNum)
    else
-      output = self.recurrentModule:updateOutput(input)
+      output = self.recurrentModule:updateOutput(input, trialNum)
    end
    
    if self.train ~= false then

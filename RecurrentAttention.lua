@@ -48,7 +48,7 @@ function RecurrentAttention:updateOutput(input)
    self.rnn:forget()
    self.action:forget()
    local nDim = input:dim()
-   
+
    for step=1,self.nStep do
       if step == 1 then
          -- sample an initial starting actions by forwarding zeros through the action
@@ -57,11 +57,11 @@ function RecurrentAttention:updateOutput(input)
          self.actions[1] = self.action:updateOutput(self._initInput)
       else
          -- sample actions from previous hidden activation (rnn output)
-         self.actions[step] = self.action:updateOutput(self.output[step-1])
+         self.actions[step] = self.action:updateOutput(self.output[step-1], self.trialNum)
       end
 
       -- rnn handles the recurrence internally
-      local output = self.rnn:updateOutput{input, self.actions[step] }
+      local output = self.rnn:updateOutput({input, self.actions[step]}, self.trialNum)
       self.output[step] = self.forwardActions and {output, self.actions[step]} or output
    end
    
@@ -72,7 +72,6 @@ function RecurrentAttention:updateGradInput(input, gradOutput)
    assert(self.rnn.step - 1 == self.nStep, "inconsistent rnn steps")
    assert(torch.type(gradOutput) == 'table', "expecting gradOutput table")
    assert(#gradOutput == self.nStep, "gradOutput should have nStep elements")
-    
    -- back-propagate through time (BPTT)
    for step=self.nStep,1,-1 do
       -- 1. backward through the action layer

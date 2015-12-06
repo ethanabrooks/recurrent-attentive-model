@@ -202,9 +202,9 @@ function AbstractRecurrent:type(type)
    end)
 end
 
-function AbstractRecurrent:training()
+function AbstractRecurrent:training(trialNum)
    return self:includingSharedClones(function()
-      return parent.training(self)
+      return parent.training(self, trialNum)
    end)
 end
 
