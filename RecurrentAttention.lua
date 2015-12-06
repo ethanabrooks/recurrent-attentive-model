@@ -57,6 +57,7 @@ function RecurrentAttention:updateOutput(input)
          self.actions[1] = self.action:updateOutput(self._initInput)
       else
          -- sample actions from previous hidden activation (rnn output)
+         dbg()
          self.actions[step] = self.action:updateOutput(self.output[step-1], self.trialNum)
       end
 
