@@ -81,6 +81,18 @@ if opt.dataset == 'TranslatedMnist' then
       function() return dp[opt.dataset]() end,
       opt.overwrite
    )
+           elseif opt.dataset == 'Cifar10' then
+       ds = torch.checkpoint(
+              paths.concat(dp.DATA_DIR, 'checkpoint/dp.Cifar10.t7'),
+              function() return dp[opt.dataset]() end,
+              opt.overwrite
+                   )
+            elseif opt.dataset == 'FaceDetection' then
+       ds = torch.checkpoint(
+              paths.concat(dp.DATA_DIR, 'checkpoint/dp.FaceDetection.t7'),
+              function() return dp[opt.dataset]() end,
+              opt.overwrite
+                   )
 else
    ds = dp[opt.dataset]()
 end
