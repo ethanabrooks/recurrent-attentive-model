@@ -1,15 +1,11 @@
 require 'dp'
 require 'rnn'
-package.path = '/Users/Luke/torch/install/share/lua/5.1/rnn/?.lua;' .. package.path
-require ('ChangeReward')
 
 -- References :
 -- A. http://papers.nips.cc/paper/5542-recurrent-models-of-visual-attention.pdf
 -- B. http://incompleteideas.net/sutton/williams-92.pdf
 
 version = 12
---local _ = require("AbstractRecurrent")
---local _ = require("RecurrentAttention")
 local dbg = require("debugger")
 
 print("print statement")
@@ -34,7 +30,7 @@ cmd:option('--maxTries', 100, 'maximum number of epochs to try to find a better 
 cmd:option('--transfer', 'ReLU', 'activation function')
 cmd:option('--uniform', 0.1, 'initialize parameters using uniform distribution between -uniform and uniform. -1 means default initialization')
 cmd:option('--xpPath', '', 'path to a previously saved model')
-cmd:option('--progress', false, 'print progress bar')
+cmd:option('--progress', true, 'print progress bar')
 cmd:option('--silent', false, 'dont print anything to stdout')
 
 --[[ reinforce ]]--
@@ -150,13 +146,14 @@ agent:add(nn.Convert(ds:ioShapes(), 'bchw'))
 agent:add(attention)
 
 -- classifier :
-classifier = nn.Sequential()
-classifier:add(nn.SelectTable(-1))
-classifier:add(nn.Linear(opt.hiddenSize, #ds:classes()))
-attention.classifier = classifier
-agent:add(classifier)
---agent:add(nn.SelectTable(-1))
---agent:add(nn.Linear(opt.hiddenSize, #ds:classes()))
+--classifier = nn.Sequential()
+--classifier:add(nn.SelectTable(-1))
+--classifier:add(nn.Linear(opt.hiddenSize, #ds:classes()))
+--attention.classifier = classifier
+--agent:add(classifier)
+
+agent:add(nn.SelectTable(-1))
+agent:add(nn.Linear(opt.hiddenSize, #ds:classes()))
 agent:add(nn.LogSoftMax())
 
 -- add the baseline reward predictor
@@ -168,9 +165,6 @@ concat2 = nn.ConcatTable():add(nn.Identity()):add(concat)
 
 -- output will be : {classpred, {classpred, basereward}}
 agent:add(concat2)
-
-rewardCriterion = nn.ChangeReward(agent,1)
-attention.rewardCriterion = rewardCriterion
 
 if opt.uniform > 0 then
    for k,param in ipairs(agent:parameters()) do
@@ -245,6 +239,27 @@ xp = dp.Experiment{
    },
    random_seed = os.time(),
    max_epoch = opt.maxEpoch
+}
+
+--[[GPU or CPU]]--
+if opt.cuda then
+   require 'cutorch'
+   require 'cunn'
+   cutorch.setDevice(opt.useDevice)
+   xp:cuda()
+end
+
+xp:verbose(not opt.silent)
+if not opt.silent then
+   print"Agent :"
+   print(agent)
+end
+
+xp.opt = opt
+print("old version")
+
+xp:run(ds)
+xEpoch
 }
 
 --[[GPU or CPU]]--
