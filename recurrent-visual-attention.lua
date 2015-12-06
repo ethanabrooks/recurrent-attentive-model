@@ -5,10 +5,9 @@ require 'rnn'
 -- A. http://papers.nips.cc/paper/5542-recurrent-models-of-visual-attention.pdf
 -- B. http://incompleteideas.net/sutton/williams-92.pdf
 
-version = 12
-local dbg = require("debugger")
 
-print("print statement")
+version = 12
+
 --[[command line arguments]]--
 cmd = torch.CmdLine()
 cmd:text()
@@ -30,7 +29,7 @@ cmd:option('--maxTries', 100, 'maximum number of epochs to try to find a better 
 cmd:option('--transfer', 'ReLU', 'activation function')
 cmd:option('--uniform', 0.1, 'initialize parameters using uniform distribution between -uniform and uniform. -1 means default initialization')
 cmd:option('--xpPath', '', 'path to a previously saved model')
-cmd:option('--progress', true, 'print progress bar')
+cmd:option('--progress', false, 'print progress bar')
 cmd:option('--silent', false, 'dont print anything to stdout')
 
 --[[ reinforce ]]--
@@ -74,7 +73,7 @@ end
 if opt.dataset == 'TranslatedMnist' then
    ds = torch.checkpoint(
       paths.concat(dp.DATA_DIR, 'checkpoint/dp.TranslatedMnist.t7'),
-      function() return dp[opt.dataset]() end,
+      function() return dp[opt.dataset]() end, 
       opt.overwrite
    )
 else
@@ -101,7 +100,7 @@ end
 
 --[[Model]]--
 
--- glimpse network (rnn input layer)
+-- glimpse network (rnn input layer) 
 locationSensor = nn.Sequential()
 locationSensor:add(nn.SelectTable(2))
 locationSensor:add(nn.Linear(2, opt.locatorHiddenSize))
@@ -146,12 +145,6 @@ agent:add(nn.Convert(ds:ioShapes(), 'bchw'))
 agent:add(attention)
 
 -- classifier :
---classifier = nn.Sequential()
---classifier:add(nn.SelectTable(-1))
---classifier:add(nn.Linear(opt.hiddenSize, #ds:classes()))
---attention.classifier = classifier
---agent:add(classifier)
-
 agent:add(nn.SelectTable(-1))
 agent:add(nn.Linear(opt.hiddenSize, #ds:classes()))
 agent:add(nn.LogSoftMax())
@@ -189,7 +182,7 @@ train = dp.Optimizer{
          end
       end
    end,
-   callback = function(model, report)
+   callback = function(model, report)       
       if opt.cutoffNorm > 0 then
          local norm = model:gradParamClip(opt.cutoffNorm) -- affects gradParams
          opt.meanNorm = opt.meanNorm and (opt.meanNorm*0.9 + norm*0.1) or norm
@@ -200,9 +193,9 @@ train = dp.Optimizer{
       model:updateGradParameters(opt.momentum) -- affects gradParams
       model:updateParameters(opt.learningRate) -- affects params
       model:maxParamNorm(opt.maxOutNorm) -- affects params
-      model:zeroGradParameters() -- affects gradParams
+      model:zeroGradParameters() -- affects gradParams 
    end,
-   feedback = dp.Confusion{output_module=nn.SelectTable(1)},
+   feedback = dp.Confusion{output_module=nn.SelectTable(1)},  
    sampler = dp.ShuffleSampler{
       epoch_size = opt.trainEpochSize, batch_size = opt.batchSize
    },
@@ -211,14 +204,14 @@ train = dp.Optimizer{
 
 
 valid = dp.Evaluator{
-   feedback = dp.Confusion{output_module=nn.SelectTable(1)},
+   feedback = dp.Confusion{output_module=nn.SelectTable(1)},  
    sampler = dp.Sampler{epoch_size = opt.validEpochSize, batch_size = opt.batchSize},
    progress = opt.progress
 }
 if not opt.noTest then
    tester = dp.Evaluator{
-      feedback = dp.Confusion{output_module=nn.SelectTable(1)},
-      sampler = dp.Sampler{batch_size = opt.batchSize}
+      feedback = dp.Confusion{output_module=nn.SelectTable(1)},  
+      sampler = dp.Sampler{batch_size = opt.batchSize} 
    }
 end
 
@@ -232,7 +225,7 @@ xp = dp.Experiment{
       ad,
       dp.FileLogger(),
       dp.EarlyStopper{
-         max_epochs = opt.maxTries,
+         max_epochs = opt.maxTries, 
          error_report={'validator','feedback','confusion','accuracy'},
          maximize = true
       }
@@ -256,27 +249,5 @@ if not opt.silent then
 end
 
 xp.opt = opt
-print("old version")
-
-xp:run(ds)
-xEpoch
-}
-
---[[GPU or CPU]]--
-if opt.cuda then
-   require 'cutorch'
-   require 'cunn'
-   cutorch.setDevice(opt.useDevice)
-   xp:cuda()
-end
-
-xp:verbose(not opt.silent)
-if not opt.silent then
-   print"Agent :"
-   print(agent)
-end
-
-xp.opt = opt
-print("new version")
 
 xp:run(ds)

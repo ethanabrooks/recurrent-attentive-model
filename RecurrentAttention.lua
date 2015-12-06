@@ -7,7 +7,6 @@
 -- action (actions sampling module like ReinforceNormal) and 
 ------------------------------------------------------------------------
 local RecurrentAttention, parent = torch.class("nn.RecurrentAttention", "nn.AbstractSequencer")
-local dbg = require("debugger")
 
 function RecurrentAttention:__init(rnn, action, nStep, hiddenSize)
    parent.__init(self)
@@ -15,7 +14,7 @@ function RecurrentAttention:__init(rnn, action, nStep, hiddenSize)
    assert(torch.type(nStep) == 'number')
    assert(torch.type(hiddenSize) == 'table')
    assert(torch.type(hiddenSize[1]) == 'number', "Does not support table hidden layers" )
-
+   
    self.rnn = rnn
    -- we can decorate the module with a Recursor to make it AbstractRecurrent
    self.rnn = (not torch.isTypeOf(rnn, 'nn.AbstractRecurrent')) and nn.Recursor(rnn) or rnn
@@ -50,6 +49,7 @@ function RecurrentAttention:updateOutput(input)
    local nDim = input:dim()
    
    for step=1,self.nStep do
+      
       if step == 1 then
          -- sample an initial starting actions by forwarding zeros through the action
          self._initInput = self._initInput or input.new()
@@ -59,9 +59,9 @@ function RecurrentAttention:updateOutput(input)
          -- sample actions from previous hidden activation (rnn output)
          self.actions[step] = self.action:updateOutput(self.output[step-1])
       end
-
+      
       -- rnn handles the recurrence internally
-      local output = self.rnn:updateOutput{input, self.actions[step] }
+      local output = self.rnn:updateOutput{input, self.actions[step]}
       self.output[step] = self.forwardActions and {output, self.actions[step]} or output
    end
    
@@ -94,7 +94,7 @@ function RecurrentAttention:updateGradInput(input, gradOutput)
          -- gradHidden = gradOutput + gradAction
          nn.rnn.recursiveAdd(self.gradHidden[step], gradOutput_)
       end
-
+      
       if step == 1 then
          -- backward through initial starting actions
          self.action:updateGradInput(self._initInput, gradAction_)
@@ -154,34 +154,6 @@ function RecurrentAttention:accUpdateGradParameters(input, gradOutput, lr)
          -- Note : gradOutput is ignored by REINFORCE modules so we give action.output as a dummy variable
          self.action:accUpdateGradParameters(self.output[step-1], gradAction_, lr)
       end
-      
-      -- 2. backward through the rnn layer
-      self.rnn:accUpdateGradParameters(input, self.gradHidden[step], lr)
-   end
-end
-
-function RecurrentAttention:type(type)
-   self._input = nil
-   self._actions = nil
-   self._crop = nil
-   self._pad = nil
-   self._byte = nil
-   return parent.type(self, type)
-end
-
-function RecurrentAttention:__tostring__()
-   local tab = '  '
-   local line = '\n'
-   local ext = '  |    '
-   local extlast = '       '
-   local last = '   ... -> '
-   local str = torch.type(self)
-   str = str .. ' {'
-   str = str .. line .. tab .. 'action : ' .. tostring(self.action):gsub(line, line .. tab .. ext)
-   str = str .. line .. tab .. 'rnn     : ' .. tostring(self.rnn):gsub(line, line .. tab .. ext)
-   str = str .. line .. '}'
-   return str
-end
       
       -- 2. backward through the rnn layer
       self.rnn:accUpdateGradParameters(input, self.gradHidden[step], lr)
