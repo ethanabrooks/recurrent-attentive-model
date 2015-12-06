@@ -53,7 +53,7 @@ function ChangeReward:updateOutput(currentClassifierOutput, target)
    self.classifierOutput = self.classifierOutput or currentClassifierOutput:clone()  -- set the classifier output to itself or, if not defined already, to the input so the 
                                                                    -- norm will be zero for the first epoch
    local diff = currentClassifierOutput - self.classifierOutput -- calculate the difference between the current and previous classifier outputs
-   self.reward = torch.norm(diff, 2, 2):squeeze() * 1-- calculate the norm of the difference of the two outputs and scale it to be used as the new reward
+   self.reward = torch.norm(diff, 2, 2):squeeze() -- calculate the norm of the difference of the two outputs and scale it to be used as the new reward
    local norm = self.reward:clone()
    difference = norm - (self.norm or norm)
    print (torch.mean(norm))
@@ -84,7 +84,7 @@ function ChangeReward:updateGradInput(input, target)
 --      self.vrReward:div(input:size(1))
 --   end
 
-   self.module:reinforce(self.reward) -- broadcast reward to modules
+   -- self.module:reinforce(self.reward) -- broadcast reward to modules
 --
 --   -- zero gradInput (this criterion has no gradInput for class pred)
 --   self.gradInput[1]:resizeAs(input):zero()
