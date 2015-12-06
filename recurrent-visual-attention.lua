@@ -57,7 +57,7 @@ cmd:option('--hiddenSize', 256, 'number of hidden units used in Simple RNN.')
 cmd:option('--dropout', false, 'apply dropout on hidden neurons')
 
 --[[ data ]]--
-cmd:option('--dataset', 'Mnist', 'which dataset to use : Mnist | TranslattedMnist | etc')
+cmd:option('--dataset', 'Cifar10', 'which dataset to use : Mnist | TranslattedMnist | etc')
 cmd:option('--trainEpochSize', -1, 'number of train examples seen between each epoch')
 cmd:option('--validEpochSize', -1, 'number of valid examples used for early stopping and cross-validation') 
 cmd:option('--noTest', false, 'dont propagate through the test set')
@@ -78,6 +78,12 @@ end
 if opt.dataset == 'TranslatedMnist' then
    ds = torch.checkpoint(
       paths.concat(dp.DATA_DIR, 'checkpoint/dp.TranslatedMnist.t7'),
+      function() return dp[opt.dataset]() end,
+      opt.overwrite
+   )
+elseif opt.dataset == 'Cifar10' then
+   ds = torch.checkpoint(
+      paths.concat(dp.DATA_DIR, 'checkpoint/dp.Cifar10.t7'),
       function() return dp[opt.dataset]() end,
       opt.overwrite
    )
@@ -136,6 +142,7 @@ assert(ds:imageSize('h') == ds:imageSize('w'))
 -- actions (locator)
 locator = nn.Sequential()
 locator:add(nn.FastLSTM(opt.hiddenSize, 2))
+-- locator:add(nn.Linear(opt.hiddenSize, 2))
 locator:add(nn.HardTanh()) -- bounds mean between -1 and 1
 locator:add(nn.ReinforceNormal(2*opt.locatorStd, opt.stochastic)) -- sample from normal, uses REINFORCE learning rule
 assert(locator:get(3).stochastic == opt.stochastic, "Please update the dpnn package : luarocks install dpnn")
@@ -149,11 +156,12 @@ agent = nn.Sequential()
 agent:add(nn.Convert(ds:ioShapes(), 'bchw'))
 agent:add(attention)
 
--- classifier :
--- classifier = nn.Sequential()
-agent:add(nn.SelectTable(-1))
-agent:add(nn.Linear(opt.hiddenSize, #ds:classes()))
-agent:add(nn.LogSoftMax())
+classifier = nn.Sequential()
+classifier:add(nn.SelectTable(-1))
+classifier:add(nn.Linear(opt.hiddenSize, #ds:classes()))
+classifier:add(nn.LogSoftMax())
+agent:add(classifier)
+attention.classifer = classifier
 
 -- add the baseline reward predictor
 seq = nn.Sequential()

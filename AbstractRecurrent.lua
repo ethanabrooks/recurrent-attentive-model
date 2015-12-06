@@ -45,6 +45,7 @@ function AbstractRecurrent:maskZero(nInputDim)
 end
 
 function AbstractRecurrent:updateGradInput(input, gradOutput)
+   -- dbg()
    if self.onlineBackward then
       -- updateGradInput will be called in reverse order of time
       self.updateGradInputStep = self.updateGradInputStep or self.step
@@ -58,7 +59,7 @@ function AbstractRecurrent:updateGradInput(input, gradOutput)
       -- BPTT for one time-step (rho = 1)
       self.gradInput = self:updateGradInputThroughTime(self.updateGradInputStep, 1)
       self.updateGradInputStep = self.updateGradInputStep - 1
-      assert(self.gradInput, "Missing gradInput")
+      -- assert(self.gradInput, "Missing gradInput")
       return self.gradInput
    else
       -- Back-Propagate Through Time (BPTT) happens in updateParameters()

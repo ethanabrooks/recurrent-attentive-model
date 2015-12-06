@@ -7,6 +7,7 @@
 -- action (actions sampling module like ReinforceNormal) and 
 ------------------------------------------------------------------------
 local RecurrentAttention, parent = torch.class("nn.RecurrentAttention", "nn.AbstractSequencer")
+local dbg = require("debugger")
 
 function RecurrentAttention:__init(rnn, action, nStep, hiddenSize)
    parent.__init(self)
@@ -64,10 +65,15 @@ function RecurrentAttention:updateOutput(input)
       -- rnn handles the recurrence internally
       local output = self.rnn:updateOutput{input, self.actions[step]}
       self.output[step] = self.forwardActions and {output, self.actions[step]} or output
+      -- dbg()
+       --[[ new code ]]--
+      local classifierOutput = classifier.modules[2]:updateOutput(self.output[step]) -- get the current classification of the rnn
+      self.rewardCriterion:updateOutput(classifierOutput) -- tell the criterion to calculate the reward for the locator
+      self.rewardCriterion:updateGradInput(nil, nil) -- tell the criterion to broadcast its reward to the locator
 
-      -- classification = self.classifier.modules[2]:forward(self.output[step])
-      -- self.classification = self.classification or classification:clone()
-      -- print (torch.mean(torch.norm(classification - self.classification, 2, 2)))
+      local currentModule = self.action:getStepModule(step) -- get the SEQUENTIAL module, not the Recursor
+      currentModule:backward(self.output[step-1], torch.Tensor(output)) -- backpropagate and update weights
+      --[[end new code]]
 
 
    end
