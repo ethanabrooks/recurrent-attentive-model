@@ -1,13 +1,18 @@
 require 'dp'
 require 'rnn'
+package.path = '/Users/Luke/torch/install/share/lua/5.1/rnn/?.lua;' .. package.path
+require ('ChangeReward')
 
 -- References :
 -- A. http://papers.nips.cc/paper/5542-recurrent-models-of-visual-attention.pdf
 -- B. http://incompleteideas.net/sutton/williams-92.pdf
 
-
 version = 12
+--local _ = require("AbstractRecurrent")
+--local _ = require("RecurrentAttention")
+local dbg = require("debugger")
 
+print("print statement")
 --[[command line arguments]]--
 cmd = torch.CmdLine()
 cmd:text()
@@ -29,7 +34,7 @@ cmd:option('--maxTries', 100, 'maximum number of epochs to try to find a better 
 cmd:option('--transfer', 'ReLU', 'activation function')
 cmd:option('--uniform', 0.1, 'initialize parameters using uniform distribution between -uniform and uniform. -1 means default initialization')
 cmd:option('--xpPath', '', 'path to a previously saved model')
-cmd:option('--progress', false, 'print progress bar')
+cmd:option('--progress', true, 'print progress bar')
 cmd:option('--silent', false, 'dont print anything to stdout')
 
 --[[ reinforce ]]--
@@ -73,7 +78,7 @@ end
 if opt.dataset == 'TranslatedMnist' then
    ds = torch.checkpoint(
       paths.concat(dp.DATA_DIR, 'checkpoint/dp.TranslatedMnist.t7'),
-      function() return dp[opt.dataset]() end, 
+      function() return dp[opt.dataset]() end,
       opt.overwrite
    )
 else
@@ -100,7 +105,7 @@ end
 
 --[[Model]]--
 
--- glimpse network (rnn input layer) 
+-- glimpse network (rnn input layer)
 locationSensor = nn.Sequential()
 locationSensor:add(nn.SelectTable(2))
 locationSensor:add(nn.Linear(2, opt.locatorHiddenSize))
@@ -130,7 +135,7 @@ assert(ds:imageSize('h') == ds:imageSize('w'))
 
 -- actions (locator)
 locator = nn.Sequential()
-locator:add(nn.Linear(opt.hiddenSize, 2))
+locator:add(nn.FastLSTM(opt.hiddenSize, 2))
 locator:add(nn.HardTanh()) -- bounds mean between -1 and 1
 locator:add(nn.ReinforceNormal(2*opt.locatorStd, opt.stochastic)) -- sample from normal, uses REINFORCE learning rule
 assert(locator:get(3).stochastic == opt.stochastic, "Please update the dpnn package : luarocks install dpnn")
@@ -145,12 +150,10 @@ agent:add(nn.Convert(ds:ioShapes(), 'bchw'))
 agent:add(attention)
 
 -- classifier :
-classifier = nn.Sequential()
-classifier:add(nn.SelectTable(-1))
-classifier:add(nn.Linear(opt.hiddenSize, #ds:classes()))
-classifier:add(nn.LogSoftMax())
-agent:add(classifier)
-attention.classifier = classifier
+-- classifier = nn.Sequential()
+agent:add(nn.SelectTable(-1))
+agent:add(nn.Linear(opt.hiddenSize, #ds:classes()))
+agent:add(nn.LogSoftMax())
 
 -- add the baseline reward predictor
 seq = nn.Sequential()
@@ -161,6 +164,9 @@ concat2 = nn.ConcatTable():add(nn.Identity()):add(concat)
 
 -- output will be : {classpred, {classpred, basereward}}
 agent:add(concat2)
+
+rewardCriterion = nn.ChangeReward(agent,1)
+attention.rewardCriterion = rewardCriterion
 
 if opt.uniform > 0 then
    for k,param in ipairs(agent:parameters()) do
@@ -185,7 +191,7 @@ train = dp.Optimizer{
          end
       end
    end,
-   callback = function(model, report)       
+   callback = function(model, report)
       if opt.cutoffNorm > 0 then
          local norm = model:gradParamClip(opt.cutoffNorm) -- affects gradParams
          opt.meanNorm = opt.meanNorm and (opt.meanNorm*0.9 + norm*0.1) or norm
@@ -196,9 +202,9 @@ train = dp.Optimizer{
       model:updateGradParameters(opt.momentum) -- affects gradParams
       model:updateParameters(opt.learningRate) -- affects params
       model:maxParamNorm(opt.maxOutNorm) -- affects params
-      model:zeroGradParameters() -- affects gradParams 
+      model:zeroGradParameters() -- affects gradParams
    end,
-   feedback = dp.Confusion{output_module=nn.SelectTable(1)},  
+   feedback = dp.Confusion{output_module=nn.SelectTable(1)},
    sampler = dp.ShuffleSampler{
       epoch_size = opt.trainEpochSize, batch_size = opt.batchSize
    },
@@ -207,14 +213,14 @@ train = dp.Optimizer{
 
 
 valid = dp.Evaluator{
-   feedback = dp.Confusion{output_module=nn.SelectTable(1)},  
+   feedback = dp.Confusion{output_module=nn.SelectTable(1)},
    sampler = dp.Sampler{epoch_size = opt.validEpochSize, batch_size = opt.batchSize},
    progress = opt.progress
 }
 if not opt.noTest then
    tester = dp.Evaluator{
-      feedback = dp.Confusion{output_module=nn.SelectTable(1)},  
-      sampler = dp.Sampler{batch_size = opt.batchSize} 
+      feedback = dp.Confusion{output_module=nn.SelectTable(1)},
+      sampler = dp.Sampler{batch_size = opt.batchSize}
    }
 end
 
@@ -228,7 +234,7 @@ xp = dp.Experiment{
       ad,
       dp.FileLogger(),
       dp.EarlyStopper{
-         max_epochs = opt.maxTries, 
+         max_epochs = opt.maxTries,
          error_report={'validator','feedback','confusion','accuracy'},
          maximize = true
       }
@@ -252,5 +258,6 @@ if not opt.silent then
 end
 
 xp.opt = opt
+print("new version")
 
 xp:run(ds)

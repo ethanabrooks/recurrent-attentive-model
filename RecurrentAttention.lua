@@ -65,13 +65,13 @@ function RecurrentAttention:updateOutput(input)
       local output = self.rnn:updateOutput{input, self.actions[step]}
       self.output[step] = self.forwardActions and {output, self.actions[step]} or output
 
-      classification = self.classifier.modules[2]:forward(self.output[step])
-      self.classification = self.classification or classification:clone()
-      print (torch.mean(torch.norm(classification - self.classification, 2, 2)))
+      -- classification = self.classifier.modules[2]:forward(self.output[step])
+      -- self.classification = self.classification or classification:clone()
+      -- print (torch.mean(torch.norm(classification - self.classification, 2, 2)))
 
 
    end
-   print ("\n")
+   -- print ("\n")
    self.classification = nil
    
    return self.output
