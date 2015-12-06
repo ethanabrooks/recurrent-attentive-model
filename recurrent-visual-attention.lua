@@ -145,9 +145,12 @@ agent:add(nn.Convert(ds:ioShapes(), 'bchw'))
 agent:add(attention)
 
 -- classifier :
-agent:add(nn.SelectTable(-1))
-agent:add(nn.Linear(opt.hiddenSize, #ds:classes()))
-agent:add(nn.LogSoftMax())
+classifier = nn.Sequential()
+classifier:add(nn.SelectTable(-1))
+classifier:add(nn.Linear(opt.hiddenSize, #ds:classes()))
+classifier:add(nn.LogSoftMax())
+agent:add(classifier)
+attention.classifier = classifier
 
 -- add the baseline reward predictor
 seq = nn.Sequential()

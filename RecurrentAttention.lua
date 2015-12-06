@@ -14,6 +14,7 @@ function RecurrentAttention:__init(rnn, action, nStep, hiddenSize)
    assert(torch.type(nStep) == 'number')
    assert(torch.type(hiddenSize) == 'table')
    assert(torch.type(hiddenSize[1]) == 'number', "Does not support table hidden layers" )
+   self.classifier = nil
    
    self.rnn = rnn
    -- we can decorate the module with a Recursor to make it AbstractRecurrent
@@ -63,7 +64,15 @@ function RecurrentAttention:updateOutput(input)
       -- rnn handles the recurrence internally
       local output = self.rnn:updateOutput{input, self.actions[step]}
       self.output[step] = self.forwardActions and {output, self.actions[step]} or output
+
+      classification = self.classifier.modules[2]:forward(self.output[step])
+      self.classification = self.classification or classification:clone()
+      print (torch.mean(torch.norm(classification - self.classification, 2, 2)))
+
+
    end
+   print ("\n")
+   self.classification = nil
    
    return self.output
 end
