@@ -57,7 +57,7 @@ cmd:option('--hiddenSize', 256, 'number of hidden units used in Simple RNN.')
 cmd:option('--dropout', false, 'apply dropout on hidden neurons')
 
 --[[ data ]]--
-cmd:option('--dataset', 'Cifar10', 'which dataset to use : Mnist | TranslattedMnist | etc')
+cmd:option('--dataset', 'Svhn', 'which dataset to use : Mnist | TranslattedMnist | etc')
 cmd:option('--trainEpochSize', -1, 'number of train examples seen between each epoch')
 cmd:option('--validEpochSize', -1, 'number of valid examples used for early stopping and cross-validation') 
 cmd:option('--noTest', false, 'dont propagate through the test set')
@@ -87,6 +87,12 @@ elseif opt.dataset == 'Cifar10' then
       function() return dp[opt.dataset]() end,
       opt.overwrite
    )
+elseif opt.dataset == 'Svnh' then
+   ds = torch.checkpoint(
+      paths.concat(dp.DATA_DIR, 'checkpoint/dp.Svnh.t7'),
+      function() return dp[opt.dataset]() end,
+      opt.overwrite
+   )   
 else
    ds = dp[opt.dataset]()
 end
