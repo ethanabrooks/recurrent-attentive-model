@@ -67,14 +67,15 @@ function RecurrentAttention:updateOutput(input)
       -- rnn handles the recurrence internally
       local output = self.rnn:updateOutput{input, self.actions[step] }
       self.output[step] = self.forwardActions and {output, self.actions[step]} or output
-
-      if step == 7 or step == 8 then
-         classifierOutput = self.classifier:updateOutput(self.output[step])
-         print (classifierOutput)
-      end
+      dbg()
+      -- if step == 7 or step == 8 then
+      --    classifierOutput = self.classifier.modules[2]:updateOutput(self.output[step])
+      --    print (classifierOutput[1])
+      -- end
 
 
    end
+   -- print ("\n")
    
    return self.output
 end
