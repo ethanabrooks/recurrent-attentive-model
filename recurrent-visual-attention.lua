@@ -121,7 +121,7 @@ glimpse:add(nn[opt.transfer]())
 glimpse:add(nn.Linear(opt.imageHiddenSize, opt.hiddenSize))
 
 -- rnn recurrent layer
-recurrent = nn.Linear(opt.hiddenSize, opt.hiddenSize)
+recurrent = nn.FastLSTM(opt.hiddenSize, opt.hiddenSize)
 
 -- recurrent neural network
 rnn = nn.Recurrent(opt.hiddenSize, glimpse, recurrent, nn[opt.transfer](), 99999)
@@ -131,7 +131,7 @@ assert(ds:imageSize('h') == ds:imageSize('w'))
 
 -- actions (locator)
 locator = nn.Sequential()
-locator:add(nn.Linear(opt.hiddenSize, 2))
+locator:add(nn.FastLSTM(opt.hiddenSize, 2))
 locator:add(nn.HardTanh()) -- bounds mean between -1 and 1
 locator:add(nn.ReinforceNormal(2*opt.locatorStd, opt.stochastic)) -- sample from normal, uses REINFORCE learning rule
 assert(locator:get(3).stochastic == opt.stochastic, "Please update the dpnn package : luarocks install dpnn")

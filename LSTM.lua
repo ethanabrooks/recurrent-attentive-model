@@ -10,6 +10,7 @@
 ------------------------------------------------------------------------
 assert(not nn.LSTM, "update nnx package : luarocks install nnx")
 local LSTM, parent = torch.class('nn.LSTM', 'nn.AbstractRecurrent')
+local dbg = require("debugger")
 
 function LSTM:__init(inputSize, outputSize, rho, cell2gate)
    parent.__init(self, rho or 9999)
