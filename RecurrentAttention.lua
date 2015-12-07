@@ -51,8 +51,8 @@ function RecurrentAttention:updateOutput(input)
    local nDim = input:dim()
    
    for step=1,self.nStep do  -- ADDED +1 FOR FIRST GLIMPSE CHECK
-
-      self.glimpseSensor.currentStep = step
+      -- dbg()
+      self.glimpseSensor.modules[1].modules[1]:updateStep()
 
       if step == 1 then
          -- sample an initial starting actions by forwarding zeros through the action
@@ -67,15 +67,16 @@ function RecurrentAttention:updateOutput(input)
       -- rnn handles the recurrence internally
       local output = self.rnn:updateOutput{input, self.actions[step] }
       self.output[step] = self.forwardActions and {output, self.actions[step]} or output
-      dbg()
-      -- if step == 7 or step == 8 then
-      --    classifierOutput = self.classifier.modules[2]:updateOutput(self.output[step])
-      --    print (classifierOutput[1])
-      -- end
+
+      if step == 7 or step == 8 then
+         classifierOutput = self.classifier.modules[2]:updateOutput(self.output[step])
+         print (classifierOutput[1])
+      end
 
 
    end
-   -- print ("\n")
+   self.glimpseSensor.modules[1].modules[1]:resetStep()
+   print ("\n")
    
    return self.output
 end
