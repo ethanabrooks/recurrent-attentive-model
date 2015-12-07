@@ -57,7 +57,7 @@ cmd:option('--hiddenSize', 256, 'number of hidden units used in Simple RNN.')
 cmd:option('--dropout', false, 'apply dropout on hidden neurons')
 
 --[[ data ]]--
-cmd:option('--dataset', 'Svhn', 'which dataset to use : Mnist | TranslattedMnist | etc')
+cmd:option('--dataset', 'Cifar10', 'which dataset to use : Mnist | TranslattedMnist | etc')
 cmd:option('--trainEpochSize', -1, 'number of train examples seen between each epoch')
 cmd:option('--validEpochSize', -1, 'number of valid examples used for early stopping and cross-validation') 
 cmd:option('--noTest', false, 'dont propagate through the test set')
