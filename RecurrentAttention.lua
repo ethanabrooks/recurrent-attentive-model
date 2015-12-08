@@ -72,7 +72,7 @@ function RecurrentAttention:updateOutput(input)
       self.rewardCriterion:updateGradInput(nil, nil) -- tell the criterion to broadcast its reward to the locator
 
       local currentModule = self.action:getStepModule(step) -- get the SEQUENTIAL module, not the Recursor
-      currentModule:backward(self.output[step], torch.Tensor(output)) -- backpropagate and update weights
+      currentModule:backward(self.output[step-1], torch.Tensor(output)) -- backpropagate and update weights
 
 
       --[[end new code]]
@@ -87,7 +87,7 @@ function RecurrentAttention:updateOutput(input)
 --      self.action:updateGradInput(self.inputs, self.output)
       --TODO: also I don't know what self.output is doing here and this is probably a bad value. However, I think it can be a dummy value.
    end
-   print ('"\n')
+   print ('\n')
    
    return self.output
 end
