@@ -67,18 +67,22 @@ function RecurrentAttention:updateOutput(input)
       self.output[step] = self.forwardActions and {output, self.actions[step]} or output
 
       --[[ new code ]]--
-<<<<<<< HEAD
-      local classifierOutput = self.classifier.modules[2]:updateOutput(self.output[step-1]) -- get the current classification of the rnn
-      -- dbg()
+      local classifierOutput = self.classifier.modules[2]:forward(self.output[step]) -- get the current classification of the rnn
       self.rewardCriterion:updateOutput(classifierOutput) -- tell the criterion to calculate the reward for the locator
-      self.rewardCriterion:updateGradInput(input, self.output) -- tell the criterion to broadcast its reward to the locator
-=======
-      local classifierOutput = self.classifier.modules[2]:forward(self.output[step-1])
-      self.rewardCriterion:updateOutput(classifierOutput)
-      self.rewardCriterion:updateGradInput(input, self.output)
---      self.action:backward(input, self.output[step]) --TODO: this input has to be the same input as the one originally fed to action (and I think it is)
->>>>>>> 56eb8b22e6bc27e8b25c29911d940e0bef215c2b
+      self.rewardCriterion:updateGradInput(nil, nil) -- tell the criterion to broadcast its reward to the locator
 
+      local currentModule = self.action:getStepModule(step) -- get the SEQUENTIAL module, not the Recursor
+<<<<<<< HEAD
+      currentModule:backward(self.output[step-1], torch.Tensor(output)) -- backpropagate and update weights
+=======
+      currentModule:backward(self.output[step-1], torch.Tensor(1)) -- backpropagate and update weights
+>>>>>>> 12d3572a309d2d54125ea2210250a902f46c0eed
+
+
+      --[[end new code]]
+
+
+      --      self.action:backward(input, self.output[step]) --TODO: this input has to be the same input as the one originally fed to action (and I think it is)
 --      self.inputs = self.inputs or {}
 --      self.gradOutputs = self.gradOutputs or {}
 --      self.inputs[step] = input
@@ -87,6 +91,10 @@ function RecurrentAttention:updateOutput(input)
 --      self.action:updateGradInput(self.inputs, self.output)
       --TODO: also I don't know what self.output is doing here and this is probably a bad value. However, I think it can be a dummy value.
    end
+<<<<<<< HEAD
+   print ('\n')
+=======
+>>>>>>> 12d3572a309d2d54125ea2210250a902f46c0eed
    
    return self.output
 end
@@ -204,39 +212,4 @@ function RecurrentAttention:__tostring__()
    str = str .. line .. tab .. 'rnn     : ' .. tostring(self.rnn):gsub(line, line .. tab .. ext)
    str = str .. line .. '}'
    return str
-end
-
-
-function print_r ( t )
-local print_r_cache={}
-local function sub_print_r(t,indent)
-   if (print_r_cache[tostring(t)]) and type(t)~=torch.Tensor then
-      print(indent.."*"..tostring(t))
-   else
-      print_r_cache[tostring(t)]=true
-      if (type(t)=="table") then
-         for pos,val in pairs(t) do
-            if (type(val)=="table") and type(t)~=torch.Tensor then
-               print(indent.."["..pos.."] => "..tostring(t).." {")
-               sub_print_r(val,indent..string.rep(" ",string.len(pos)+8))
-               print(indent..string.rep(" ",string.len(pos)+6).."}")
-            elseif (type(val)=="string") then
-               print(indent.."["..pos..'] => "'..val..'"')
-            elseif type(val)~="userdata" then
-               print(indent.."["..pos.."] => "..tostring(val))
-            end
-         end
-      elseif type(t)~=torch.Tensor then
-         print(indent..tostring(t))
-      end
-   end
-end
-if (type(t)=="table") and type(t)~=torch.Tensor then
-   print(tostring(t).." {")
-   sub_print_r(t,"  ")
-   print("}")
-else
-   sub_print_r(t,"  ")
-end
-print()
 end
