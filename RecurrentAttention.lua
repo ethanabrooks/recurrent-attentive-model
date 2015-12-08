@@ -70,9 +70,10 @@ function RecurrentAttention:updateOutput(input)
       local classifierOutput = self.classifier.modules[2]:updateOutput(self.output[step]) -- get the current classification of the rnn
       self.rewardCriterion:updateOutput(classifierOutput) -- tell the criterion to calculate the reward for the locator
       self.rewardCriterion:updateGradInput(nil, nil) -- tell the criterion to broadcast its reward to the locator
+      -- dbg()
 
-      local currentModule = self.action:getStepModule(step) -- get the SEQUENTIAL module, not the Recursor
-      currentModule:backward(self.output[step-1], torch.Tensor(1)) -- backpropagate and update weights
+      -- local currentModule = self.action:getStepModule(step) -- get the SEQUENTIAL module, not the Recursor
+      -- currentModule:backward(self.output[step-1], torch.Tensor(1)) -- backpropagate and update weights
 
 
       --[[end new code]]
@@ -87,6 +88,7 @@ function RecurrentAttention:updateOutput(input)
 --      self.action:updateGradInput(self.inputs, self.output)
       --TODO: also I don't know what self.output is doing here and this is probably a bad value. However, I think it can be a dummy value.
    end
+   self.modules[2].modules[1].modules[3]:resetReward()
    print ('\n')
    
    return self.output

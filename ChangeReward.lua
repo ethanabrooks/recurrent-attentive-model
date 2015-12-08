@@ -55,7 +55,7 @@ function ChangeReward:updateOutput(currentClassifierOutput, target)
    local diff = currentClassifierOutput - self.classifierOutput -- calculate the difference between the current and previous classifier outputs
    self.reward = torch.norm(diff, 2, 2):squeeze() * 1-- calculate the norm of the difference of the two outputs and scale it to be used as the new reward
    local norm = self.reward:clone()
-   print (torch.mean(norm))
+   -- print (torch.mean(norm))
    self.norm = norm
    
    -- Standard deviation implementation 
@@ -82,8 +82,9 @@ function ChangeReward:updateGradInput(input, target)
 --   if self.sizeAverage then
 --      self.vrReward:div(input:size(1))
 --   end
-
+   -- dbg()
    self.module:reinforce(self.reward) -- broadcast reward to modules
+   -- self.module.modules[2].modules[2].modules[1].modules[3]:resetReward()
 --
 --   -- zero gradInput (this criterion has no gradInput for class pred)
 --   self.gradInput[1]:resizeAs(input):zero()
