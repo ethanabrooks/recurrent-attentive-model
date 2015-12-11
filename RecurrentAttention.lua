@@ -8,6 +8,7 @@
 ------------------------------------------------------------------------
 local RecurrentAttention, parent = torch.class("nn.RecurrentAttention", "nn.AbstractSequencer")
 local dbg = require("debugger")
+local classifierOutput
 
 function RecurrentAttention:__init(rnn, action, nStep, hiddenSize, glimpseSensor)
    parent.__init(self)
@@ -68,11 +69,17 @@ function RecurrentAttention:updateOutput(input)
       local output = self.rnn:updateOutput{input, self.actions[step] }
       self.output[step] = self.forwardActions and {output, self.actions[step]} or output
       if step == 7 then
-         print ("Pair starting")
-      end
-      if step == 7 or step == 8 then
          classifierOutput = self.classifier.modules[2]:updateOutput(self.output[step])
-         print (classifierOutput[1])
+         -- print (classifierOutput)
+         -- print ("Pair starting")
+      end
+      if step == 8 then
+         clone = classifierOutput:clone()
+         -- print (self.classifier.modules[2]:updateOutput(self.output[step]))
+         diff = clone - self.classifier.modules[2]:updateOutput(self.output[step])
+         -- print (diff)
+         print (torch.mean(torch.norm(diff, 2, 2)))
+         -- print (classifierOutput[1])
       end
 
 
